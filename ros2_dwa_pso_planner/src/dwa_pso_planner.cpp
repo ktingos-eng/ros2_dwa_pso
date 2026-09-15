@@ -349,8 +349,8 @@ geometry_msgs::msg::Twist DwaPsoPlanner::grid_optimize_cmd(
     const nav_msgs::msg::Odometry& odom_local
 )
 {
-    constexpr int NV = 21;
-    constexpr int NW = 21;
+    constexpr int NV = 31;
+    constexpr int NW = 31;
 
     geometry_msgs::msg::Twist cmd{};
 
