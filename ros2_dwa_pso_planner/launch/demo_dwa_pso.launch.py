@@ -29,7 +29,7 @@ def generate_launch_description():
 
         DeclareLaunchArgument("reject_oob_trajectories", default_value="False"),
 
-        DeclareLaunchArgument("pso_max_iter",       default_value="50"),
+        DeclareLaunchArgument("pso_max_iter",       default_value="60"),
         DeclareLaunchArgument("particles",          default_value="30"),
 
         DeclareLaunchArgument("eps_head",           default_value="1e-2"),
