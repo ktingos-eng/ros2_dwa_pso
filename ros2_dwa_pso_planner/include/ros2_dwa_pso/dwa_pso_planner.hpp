@@ -71,6 +71,14 @@ class DwaPsoPlanner : public rclcpp::Node {
             double radius;
             nav_msgs::msg::Path path;
         };
+
+        struct Particle {
+            double v{0.0}, w{0.0};
+            double vv{0.0}, vw{0.0};
+            double pbest_v{0.0}, pbest_w{0.0};
+            double pbest_cost{std::numeric_limits<double>::infinity()};
+            double cost{std::numeric_limits<double>::infinity()};
+        };
     
     private:
         // ROS callback functions
