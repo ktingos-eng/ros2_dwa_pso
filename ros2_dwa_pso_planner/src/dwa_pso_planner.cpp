@@ -234,29 +234,13 @@ geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const window& wnd)
     const double pv_max  = 0.5 * v_range;
     const double pw_max  = 0.5 * w_range;
 
-    static thread_local std::mt19937 rng{std::mt19937::default_seed};
-    std::uniform_real_distribution<double> uni01(0.0, 1.0);
-    std::uniform_real_distribution<double> univ(v_min, v_max);
-    std::uniform_real_distribution<double> uniw(w_min, w_max);
-
-    struct Particle {
-        double v{0.0}, w{0.0};
-        double vv{0.0}, vw{0.0};
-        double pbest_v{0.0}, pbest_w{0.0};
-        double pbest_cost{std::numeric_limits<double>::infinity()};
-        double cost{std::numeric_limits<double>::infinity()};
-    };
-
     std::vector<Particle> swarm(static_cast<size_t>(this->n_par));
 
-    for (auto &p : swarm) {
-        p.v = univ(rng);
-        p.w = uniw(rng);
-        p.cost = this->eval_cost(p.v, p.w, 1);
-        p.pbest_v = p.v;
-        p.pbest_w = p.w;
-        p.pbest_cost = p.cost;
-    } 
+    // Initialize swarm
+    this->init_swarm(swarm, wnd);
+
+    static thread_local std::mt19937 rng{std::mt19937::default_seed};
+    std::uniform_real_distribution<double> uni01(0.0, 1.0);
 
     double gbest_v = swarm.front().pbest_v;
     double gbest_w = swarm.front().pbest_w;
@@ -393,6 +377,68 @@ geometry_msgs::msg::Twist DwaPsoPlanner::grid_optimize_cmd(
     return cmd;
 }
 
+void DwaPsoPlanner::init_swarm(std::vector<Particle>& swarm, window wnd){
+    if(this->RANDOM_INIT){
+        static thread_local std::mt19937 rng{std::mt19937::default_seed};
+        std::uniform_real_distribution<double> univ(wnd.v_min, wnd.v_max);
+        std::uniform_real_distribution<double> uniw(wnd.w_min, wnd.w_max);
+
+        for (auto &p : swarm) {
+            p.v = univ(rng);
+            p.w = uniw(rng);
+            p.cost = this->eval_cost(p.v, p.w, 1);
+            p.pbest_v = p.v;
+            p.pbest_w = p.w;
+            p.pbest_cost = p.cost;
+        } 
+    } else {
+        auto closestFactor = [](size_t num){
+            size_t factor = static_cast<size_t>(
+                std::sqrt(static_cast<double>(num))
+            );
+
+            while(num % factor != 0 || factor < 1){
+                --factor;
+            };
+
+            return factor;
+        };
+
+        size_t nv = closestFactor(this->n_par);
+
+        bool PRIME = (this->n_par>1 && nv==1);
+
+        if(PRIME) {
+            // Reduce by 1 if prime
+            nv = closestFactor(this->n_par - 1);
+        }
+        size_t nw = (this->n_par - 1) / nv;
+
+        double dv = (wnd.v_max - wnd.v_min) / nv;
+        double dw = (wnd.w_max - wnd.w_min) / nw;
+        
+        for (size_t k = 0; k < swarm.size(); ++k) {
+            auto &p = swarm[k];
+
+            if (PRIME && k == swarm.size() - 1) {
+                p.v = wnd.v_min + 0.5 * (wnd.v_max - wnd.v_min);
+                p.w = wnd.w_min + 0.5 * (wnd.w_max - wnd.w_min);
+            } else {
+                const size_t i = k / nw;
+                const size_t j = k % nw;
+
+                p.v = wnd.v_min + (i + 0.5) * dv;
+                p.w = wnd.w_min + (j + 0.5) * dw;
+            }
+
+            p.cost = this->eval_cost(p.v, p.w, 1);
+            p.pbest_v = p.v;
+            p.pbest_w = p.w;
+            p.pbest_cost = p.cost;
+        }
+    }
+}
+
 void DwaPsoPlanner::get_params() {
 
     // Declare params
@@ -454,6 +500,7 @@ void DwaPsoPlanner::get_params() {
     this->get_parameter("eps_head", this->eps_head);
     this->get_parameter("eps_cost", this->eps_cost);
     this->get_parameter("patience", this->patience);
+    this->get_parameter("random_init", this->RANDOM_INIT);
 
     this->get_parameter("acc_cog", this->acc_cog);
     this->get_parameter("acc_soc", this->acc_soc);
