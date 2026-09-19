@@ -35,6 +35,7 @@ def generate_launch_description():
         DeclareLaunchArgument("eps_head",           default_value="1e-2"),
         DeclareLaunchArgument("eps_cost",           default_value="1e-4"),
         DeclareLaunchArgument("patience",           default_value="5"),
+        DeclareLaunchArgument("random_init",        default_value="False"),
 
         DeclareLaunchArgument("cognitive_coeff",    default_value="2.0"),
         DeclareLaunchArgument("social_coeff",       default_value="2.0"),
@@ -72,6 +73,7 @@ def generate_launch_description():
             "eps_head": LaunchConfiguration("eps_head"),
             "eps_cost": LaunchConfiguration("eps_cost"),
             "patience": LaunchConfiguration("patience"),
+            "random_int": LaunchConfiguration("random_init"),
 
             "acc_cog":    LaunchConfiguration("cognitive_coeff"),
             "acc_soc":    LaunchConfiguration("social_coeff"),

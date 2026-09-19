@@ -182,6 +182,7 @@ class DwaPsoPlanner : public rclcpp::Node {
         double eps_head{1e-2};
         double eps_cost{1e-4};
         int patience{5};
+        bool RANDOM_INIT{false};
 
         double acc_cog{2.0};
         double acc_soc{2.0};
