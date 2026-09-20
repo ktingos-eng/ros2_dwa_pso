@@ -39,7 +39,7 @@ void DwaPsoPlanner::debug_bruteforce_line_scan(const nav_msgs::msg::Odometry& od
         const double a = static_cast<double>(i) / static_cast<double>(N - 1);
         const double v = v_min + a * (v_max - v_min);
 
-        trajectory t = eval_trajectory(odom_local, v, 0.0);
+        planner_types::Trajectory t = eval_trajectory(odom_local, v, 0.0);
 
         const double J_head  = this->heading_cost(t);
         const double J_vel   = this->velocity_cost(v);
@@ -92,7 +92,7 @@ void DwaPsoPlanner::debug_bruteforce_grid_scan(const nav_msgs::msg::Odometry& od
     double best_w = w_min;
     double best_J = std::numeric_limits<double>::infinity();
 
-    trajectory best_t{};
+    planner_types::Trajectory best_t{};
     bool best_collision = false;
 
     RCLCPP_INFO(this->get_logger(), "========== BRUTE FORCE GRID SCAN ==========");
@@ -110,7 +110,7 @@ void DwaPsoPlanner::debug_bruteforce_grid_scan(const nav_msgs::msg::Odometry& od
             const double av = static_cast<double>(iv) / static_cast<double>(NV - 1);
             const double v = v_min + av * (v_max - v_min);
 
-            trajectory t = this->eval_trajectory(odom_local, v, w);
+            planner_types::Trajectory t = this->eval_trajectory(odom_local, v, w);
 
             const uint q = compute_collision_violation(t);
             bool traj_collision = q > 0 ? true : false;

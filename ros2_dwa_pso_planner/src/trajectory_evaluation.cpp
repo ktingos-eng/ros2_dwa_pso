@@ -13,7 +13,7 @@
 double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
 {
     // Predict pose
-    trajectory t = eval_trajectory(this->odom, v, w);
+    planner_types::Trajectory t = eval_trajectory(this->odom, v, w);
 
     const uint q = compute_collision_violation(t);
     this->tcurr.info.COLLISION = q > 0 ? true : false;
@@ -57,14 +57,14 @@ double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
     return (penalty + total_cost);
 }
 
-DwaPsoPlanner::trajectory DwaPsoPlanner::eval_trajectory(
+planner_types::Trajectory DwaPsoPlanner::eval_trajectory(
     const nav_msgs::msg::Odometry& odom,
     const double v,
     const double w
 ) {
     constexpr double EPS_W = 1e-4;
 
-    trajectory t{};
+    planner_types::Trajectory t;
 
     t.vel.v = v;
     t.vel.w = w;
@@ -192,7 +192,7 @@ DwaPsoPlanner::trajectory DwaPsoPlanner::eval_trajectory(
     return t;
 }
 
-int DwaPsoPlanner::compute_collision_violation(const trajectory& t) {
+int DwaPsoPlanner::compute_collision_violation(const planner_types::Trajectory& t) {
     int c_max = 0;
     for(const auto& p : t.path.poses){
         const double x = p.pose.position.x;
@@ -225,7 +225,7 @@ double DwaPsoPlanner::velocity_cost(const double v){
     return this->w_vel * (v_max - v) / (v_max - v_min);
 }
 
-double DwaPsoPlanner::heading_cost(const trajectory& t){
+double DwaPsoPlanner::heading_cost(const planner_types::Trajectory& t){
     const double x_hat = t.predicted_pose.x_hat;
     const double y_hat = t.predicted_pose.y_hat;
     const double phi_hat = t.predicted_pose.phi_hat;
@@ -240,7 +240,7 @@ double DwaPsoPlanner::heading_cost(const trajectory& t){
     return this->w_head * std::pow(std::sin(dphi / 2),2);
 }
 
-double DwaPsoPlanner::clearence_cost(const trajectory& t){
+double DwaPsoPlanner::clearence_cost(const planner_types::Trajectory& t){
     constexpr double MAX_OCC_COST = 100.0;
 
     // Min cost --> 0

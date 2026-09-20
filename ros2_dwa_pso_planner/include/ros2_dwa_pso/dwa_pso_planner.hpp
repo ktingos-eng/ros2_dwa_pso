@@ -1,13 +1,14 @@
 #ifndef DWA_PSO_PLANNER_HPP
 #define DWA_PSO_PLANNER_HPP
 
+#include "ros2_dwa_pso/planner_types.hpp"
+
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
-#include <nav_msgs/msg/path.hpp>
 #include <planner_interfaces/msg/metrics.hpp>
 #include <mutex>
 #include <atomic>
@@ -16,69 +17,6 @@ class DwaPsoPlanner : public rclcpp::Node {
 
     public:
         DwaPsoPlanner();
-
-        struct DynamicLimits {
-            struct vel {
-                double linear;
-                double angular;
-            };
-            struct acc {
-                double linear;
-                double angular;
-            };
-            vel max_vel;
-            acc max_acc;
-        };
-
-        struct window {
-            double v_min, v_max;
-            double w_min, w_max;
-        };
-
-        struct trajectory {
-            struct info {
-                bool IS_LINEAR;
-                bool COLLISION;
-                struct scores {
-                    double head;
-                    double vel;
-                    double clearence;
-                    double oscillation;
-                    double collision;
-                    double progress;
-                } scores;
-            } info;
-            struct origin {
-                double x0;
-                double y0;
-                double phi0;
-            } origin;
-            struct predicted_pose {
-                double x_hat;
-                double y_hat;
-                double phi_hat;
-            } predicted_pose;
-            struct center {
-                double xc;
-                double yc;
-            } center;
-            struct vel {
-                double v;
-                double w;
-                double v0;
-                double w0;
-            } vel;
-            double radius;
-            nav_msgs::msg::Path path;
-        };
-
-        struct Particle {
-            double v{0.0}, w{0.0};
-            double vv{0.0}, vw{0.0};
-            double pbest_v{0.0}, pbest_w{0.0};
-            double pbest_cost{std::numeric_limits<double>::infinity()};
-            double cost{std::numeric_limits<double>::infinity()};
-        };
     
     private:
         // ROS callback functions
@@ -88,27 +26,27 @@ class DwaPsoPlanner : public rclcpp::Node {
         // Timer Callback - Main controller loop function
         void plannerCB();
 
-        window compute_dynamic_window(const nav_msgs::msg::Odometry& odom);
+        planner_types::Window compute_dynamic_window(const nav_msgs::msg::Odometry& odom);
 
         // Optimization functions - PSO and grid-scan methods
-        geometry_msgs::msg::Twist pso_optimize_cmd(const window& wnd);
+        geometry_msgs::msg::Twist pso_optimize_cmd(const planner_types::Window& wnd);
         geometry_msgs::msg::Twist grid_optimize_cmd(const nav_msgs::msg::Odometry& odom_local);
 
-        void init_swarm(std::vector<Particle>& swarm, window wnd);
+        void init_swarm(std::vector<planner_types::Particle>& swarm, planner_types::Window wnd);
 
         double eval_cost(const double v, const double w, const size_t k);
-        trajectory eval_trajectory(const nav_msgs::msg::Odometry& odom,
+        planner_types::Trajectory eval_trajectory(const nav_msgs::msg::Odometry& odom,
             const double v, const double w
         );
 
         // Cost-calculation functions
         double velocity_cost(const double v);
-        double heading_cost(const trajectory& t);
-        double clearence_cost(const trajectory& t);
+        double heading_cost(const planner_types::Trajectory& t);
+        double clearence_cost(const planner_types::Trajectory& t);
         double progress_cost(const double x_hat, const double y_hat);
         double oscillation_cost(const double w);
 
-        int compute_collision_violation(const trajectory& t);
+        int compute_collision_violation(const planner_types::Trajectory& t);
         int get_cell_val(double x, double y);
 
         void get_params();
@@ -142,8 +80,8 @@ class DwaPsoPlanner : public rclcpp::Node {
         nav_msgs::msg::OccupancyGrid last_costmap, costmap;
         std::atomic<bool> have_costmap{false};
 
-        trajectory tcurr, tbest;
-        window wnd_curr;
+        planner_types::Trajectory tcurr, tbest;
+        planner_types::Window wnd_curr;
 
         double robot_clearence{0.0};
         double comp_time{0.0};
@@ -170,7 +108,7 @@ class DwaPsoPlanner : public rclcpp::Node {
         double dt_ms{100.0};
         double predict_time{1.0};
         double eps_goal{1e-2};
-        DynamicLimits limits{{10.0, 5.0}, {2.0, 5.0}};
+        planner_types::DynamicLimits limits{{10.0, 5.0}, {2.0, 5.0}};
         double w_head{1.0};
         double w_vel{1.0};
         double w_prog{1.0};

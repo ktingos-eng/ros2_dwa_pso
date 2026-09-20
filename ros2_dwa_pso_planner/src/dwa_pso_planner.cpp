@@ -179,7 +179,7 @@ void DwaPsoPlanner::costmapCB(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)
     have_costmap.store(true, std::memory_order_release);
 }
 
-DwaPsoPlanner::window DwaPsoPlanner::compute_dynamic_window(const nav_msgs::msg::Odometry& odom)
+planner_types::Window DwaPsoPlanner::compute_dynamic_window(const nav_msgs::msg::Odometry& odom)
 {
     const double dt = this->dt_ms * 1e-3;
 
@@ -191,7 +191,7 @@ DwaPsoPlanner::window DwaPsoPlanner::compute_dynamic_window(const nav_msgs::msg:
     const double dv = al_max * dt;
     const double dw = aa_max * dt;
 
-    window wnd;
+    planner_types::Window wnd;
     wnd.v_min = std::clamp(v_curr - dv, -this->limits.max_vel.linear,  this->limits.max_vel.linear);
     wnd.v_max = std::clamp(v_curr + dv, -this->limits.max_vel.linear,  this->limits.max_vel.linear);
 
@@ -212,7 +212,7 @@ DwaPsoPlanner::window DwaPsoPlanner::compute_dynamic_window(const nav_msgs::msg:
     return wnd;
 }
 
-geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const window& wnd)
+geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const planner_types::Window& wnd)
 {
     const double c1 = this->acc_cog;
     const double c2 = this->acc_soc;
@@ -236,7 +236,7 @@ geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const window& wnd)
     const double pv_max  = 0.5 * v_range;
     const double pw_max  = 0.5 * w_range;
 
-    std::vector<Particle> swarm(static_cast<size_t>(this->n_par));
+    std::vector<planner_types::Particle> swarm(static_cast<size_t>(this->n_par));
 
     // Initialize swarm
     this->init_swarm(swarm, wnd);
@@ -379,7 +379,7 @@ geometry_msgs::msg::Twist DwaPsoPlanner::grid_optimize_cmd(
     return cmd;
 }
 
-void DwaPsoPlanner::init_swarm(std::vector<Particle>& swarm, window wnd){
+void DwaPsoPlanner::init_swarm(std::vector<planner_types::Particle>& swarm, planner_types::Window wnd){
     if(this->RANDOM_INIT){
         static thread_local std::mt19937 rng{std::mt19937::default_seed};
         std::uniform_real_distribution<double> univ(wnd.v_min, wnd.v_max);
