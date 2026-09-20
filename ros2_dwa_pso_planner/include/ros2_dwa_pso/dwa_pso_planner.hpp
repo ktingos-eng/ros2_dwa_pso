@@ -108,7 +108,7 @@ class DwaPsoPlanner : public rclcpp::Node {
         double progress_cost(const double x_hat, const double y_hat);
         double oscillation_cost(const double w);
 
-        bool check_collision(const trajectory& t);
+        int compute_collision_violation(const trajectory& t);
         int get_cell_val(double x, double y);
 
         void get_params();
@@ -192,6 +192,7 @@ class DwaPsoPlanner : public rclcpp::Node {
         double acc_soc{2.0};
         double iner_start{0.9};
         double iner_end{0.4};
+        int occ_norm{10};
 
         // TBD PARAMS
         int thr_cost{80};

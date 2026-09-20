@@ -476,6 +476,7 @@ void DwaPsoPlanner::get_params() {
     this->declare_parameter<double>("acc_soc", this->acc_soc);
     this->declare_parameter<double>("iner_start", this->iner_start);
     this->declare_parameter<double>("iner_end", this->iner_end);
+    this->declare_parameter<int>("occupancy_norm", this->occ_norm);
 
     // Get params
     this->get_parameter("goal_x", this->goal.x);
@@ -514,6 +515,7 @@ void DwaPsoPlanner::get_params() {
     this->get_parameter("acc_soc", this->acc_soc);
     this->get_parameter("iner_start", this->iner_start);
     this->get_parameter("iner_end", this->iner_end);
+    this->get_parameter("occupancy_norm", this->occ_norm);
 }
 
 int main(int argc, char* argv[]) {

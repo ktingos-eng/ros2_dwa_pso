@@ -19,11 +19,25 @@ static double alpha_(const size_t k){
 }
 
 static double beta_(const uint q){
-    if(q > 0){
+    if(q > 0 && q < 1e-3){
+        return 10.0;
+    } else if(q <= 0.1){
+        return 20.0;
+    } else if(q <= 1){
         return 100.0;
-    } else {
-        return 0.0;
+    } else if(q > 1){
+        return 300.0;
     }
+
+    return 0.0;
+}
+
+static double gamma_(const uint q){
+    if(q >= 1){
+        return 2.0;
+    }
+
+    return 1.0;
 }
 
 static int signed_dir(const double val){
@@ -40,11 +54,10 @@ double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
     // Predict pose
     trajectory t = eval_trajectory(this->odom, v, w);
 
-    bool TRAJ_COLLISION = check_collision(t);
-    this->tcurr.info.COLLISION = TRAJ_COLLISION;
+    const uint q = compute_collision_violation(t);
+    this->tcurr.info.COLLISION = q > 0 ? true : false;
 
-    const uint q = (TRAJ_COLLISION) ? 1 : 0;
-    const double penalty = 100 * std::pow(beta_(q),2);
+    const double penalty = alpha_(k) * std::pow(beta_(q),gamma_(q));
 
     std::vector<double> costs;
     costs.push_back(velocity_cost(t.vel.v));
@@ -218,22 +231,26 @@ DwaPsoPlanner::trajectory DwaPsoPlanner::eval_trajectory(
     return t;
 }
 
-bool DwaPsoPlanner::check_collision(const trajectory& t) {
-
+int DwaPsoPlanner::compute_collision_violation(const trajectory& t) {
+    int c_max = 0;
     for(const auto& p : t.path.poses){
         const double x = p.pose.position.x;
         const double y = p.pose.position.y;
 
         const int c = get_cell_val(x,y);
 
-        bool OOB_TRAJ = this->REJECT_OOB && c < 0.0;
-        
-        if(c > this->thr_cost || OOB_TRAJ){
-            return true;
+        if(c < 0 && this->REJECT_OOB){
+            return 10000;
         }
+
+        c_max = c > c_max ? c : c_max;
     }
 
-    return false;
+    if(c_max > this->thr_cost){
+        return std::abs(c_max - this->thr_cost) / this->occ_norm;
+    }
+
+    return 0.0;
 }
 
 double DwaPsoPlanner::velocity_cost(const double v){
