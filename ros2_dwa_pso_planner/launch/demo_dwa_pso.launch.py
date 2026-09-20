@@ -39,10 +39,11 @@ def generate_launch_description():
         DeclareLaunchArgument("patience",           default_value="5"),
         DeclareLaunchArgument("random_init",        default_value="True"),
 
-        DeclareLaunchArgument("cognitive_coeff",    default_value="2.0"),
-        DeclareLaunchArgument("social_coeff",       default_value="2.0"),
-        DeclareLaunchArgument("init_inertia_coeff", default_value="0.9"),
-        DeclareLaunchArgument("final_inertia_coeff",default_value="0.4"),
+        DeclareLaunchArgument("cognitive_coeff",     default_value="2.0"),
+        DeclareLaunchArgument("social_coeff",        default_value="2.0"),
+        DeclareLaunchArgument("init_inertia_coeff",  default_value="0.9"),
+        DeclareLaunchArgument("final_inertia_coeff", default_value="0.4"),
+        DeclareLaunchArgument("occupancy_norm",      default_value="10")
     ]
 
     node = Node(
@@ -83,6 +84,7 @@ def generate_launch_description():
             "acc_soc":    LaunchConfiguration("social_coeff"),
             "iner_start": LaunchConfiguration("init_inertia_coeff"),
             "iner_end":   LaunchConfiguration("final_inertia_coeff"),
+            "occupancy_norm": LaunchConfiguration("occupancy_norm")
         }]
     )
 
