@@ -112,8 +112,9 @@ void DwaPsoPlanner::debug_bruteforce_grid_scan(const nav_msgs::msg::Odometry& od
 
             trajectory t = this->eval_trajectory(odom_local, v, w);
 
-            const bool traj_collision = this->check_collision(t);
-            const uint q = traj_collision ? 1u : 0u;
+            const uint q = compute_collision_violation(t);
+            bool traj_collision = q > 0 ? true : false;
+            this->tcurr.info.COLLISION = traj_collision;
             const double penalty = 100.0 * std::pow(beta_(q), 2);
 
             const double J_vel   = this->velocity_cost(v);
