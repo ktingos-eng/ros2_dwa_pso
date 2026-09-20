@@ -25,9 +25,11 @@ def generate_launch_description():
         DeclareLaunchArgument("heading_weight",     default_value="1.0"),
         DeclareLaunchArgument("velocity_weight",    default_value="2.0"),
         DeclareLaunchArgument("progress_weight",    default_value="2.5"),
-        DeclareLaunchArgument("clearence_weight",    default_value="1.5"),
+        DeclareLaunchArgument("clearence_weight",   default_value="1.5"),
+        DeclareLaunchArgument("oscillation_weight", default_value="1.2"), 
 
         DeclareLaunchArgument("reject_oob_trajectories", default_value="False"),
+        DeclareLaunchArgument("conditional_osc_cost", default_value="True"),
 
         DeclareLaunchArgument("pso_max_iter",       default_value="60"),
         DeclareLaunchArgument("particles",          default_value="30"),
@@ -35,7 +37,7 @@ def generate_launch_description():
         DeclareLaunchArgument("eps_head",           default_value="1e-2"),
         DeclareLaunchArgument("eps_cost",           default_value="1e-4"),
         DeclareLaunchArgument("patience",           default_value="5"),
-        DeclareLaunchArgument("random_init",        default_value="False"),
+        DeclareLaunchArgument("random_init",        default_value="True"),
 
         DeclareLaunchArgument("cognitive_coeff",    default_value="2.0"),
         DeclareLaunchArgument("social_coeff",       default_value="2.0"),
@@ -64,8 +66,10 @@ def generate_launch_description():
             "velocity_weight": LaunchConfiguration("velocity_weight"),
             "progress_weight": LaunchConfiguration("progress_weight"),
             "clearence_weight": LaunchConfiguration("clearence_weight"),
+            "oscillation_weight": LaunchConfiguration("oscillation_weight"),
 
             "reject_oob_trajectories": LaunchConfiguration("reject_oob_trajectories"),
+            "conditional_osc_cost": LaunchConfiguration("conditional_osc_cost"),
 
             "imax":  LaunchConfiguration("pso_max_iter"),
             "n_par": LaunchConfiguration("particles"),
