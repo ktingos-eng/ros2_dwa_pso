@@ -175,7 +175,9 @@ class DwaPsoPlanner : public rclcpp::Node {
         double w_vel{1.0};
         double w_prog{1.0};
         double w_clear{1.0};
+        double w_osc{1.0};
         bool REJECT_OOB{false};
+        bool COND_OSC_COST{true};
 
         // PSO
         size_t imax{30}; // max iterations

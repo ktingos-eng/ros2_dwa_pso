@@ -148,7 +148,9 @@ void DwaPsoPlanner::plannerCB()
         cmd_vel.angular.z = 0.0;
     }
 
-    this->update_osc_memory(cmd_vel.linear.x, cmd_vel.angular.z);
+    if(this->COND_OSC_COST){
+        this->update_osc_memory(cmd_vel.linear.x, cmd_vel.angular.z);
+    };
 
     // No movement during debug
     #ifdef DEBUG
@@ -457,8 +459,10 @@ void DwaPsoPlanner::get_params() {
     this->declare_parameter<double>("velocity_weight", this->w_vel);
     this->declare_parameter<double>("progress_weight", this->w_prog);
     this->declare_parameter<double>("clearence_weight", this->w_clear);
+    this->declare_parameter<double>("oscillation_weight", this->w_osc);
 
     this->declare_parameter<bool>("reject_oob_trajectories", this->REJECT_OOB);
+    this->declare_parameter<bool>("conditional_osc_cost", this->COND_OSC_COST);
 
     this->declare_parameter<int>("imax", static_cast<int>(this->imax));
     this->declare_parameter<int>("n_par", this->n_par);
@@ -466,6 +470,7 @@ void DwaPsoPlanner::get_params() {
     this->declare_parameter<double>("eps_head", this->eps_head);
     this->declare_parameter<double>("eps_cost", this->eps_cost);
     this->declare_parameter<int>("patience", this->patience);
+    this->declare_parameter<bool>("random_init", this->RANDOM_INIT);
 
     this->declare_parameter<double>("acc_cog", this->acc_cog);
     this->declare_parameter<double>("acc_soc", this->acc_soc);
@@ -488,8 +493,11 @@ void DwaPsoPlanner::get_params() {
     this->get_parameter("velocity_weight", this->w_vel);
     this->get_parameter("progress_weight", this->w_prog);
     this->get_parameter("clearence_weight", this->w_clear);
+    this->get_parameter("oscillation_weight", this->w_osc);
+    std::cout<<this->w_osc<<"\n";
 
     this->get_parameter("reject_oob_trajectories", this->REJECT_OOB);
+    this->get_parameter("conditional_osc_cost", this->COND_OSC_COST);
 
     int imax_tmp;
     this->get_parameter("imax", imax_tmp);

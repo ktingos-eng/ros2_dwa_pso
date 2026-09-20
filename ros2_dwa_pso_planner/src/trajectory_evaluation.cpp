@@ -56,17 +56,28 @@ double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
     );
     costs.push_back(oscillation_cost(t.vel.w));
 
-    this->tcurr.info.scores.vel = costs[0];
-    this->tcurr.info.scores.head = costs[1];
-    this->tcurr.info.scores.clearence = costs[2];
-    this->tcurr.info.scores.progress = costs[3];
-    this->tcurr.info.scores.oscillation = costs[4];
+    std::vector<double> weights;
+    weights.push_back(this->w_vel);
+    weights.push_back(this->w_head);
+    weights.push_back(this->w_clear);
+    weights.push_back(this->w_prog);
+    weights.push_back(this->w_osc);
+
+    const double sum_w = std::accumulate(weights.begin(), weights.end(), 0);
+
+    this->tcurr.info.scores.vel = costs[0] / sum_w;
+    this->tcurr.info.scores.head = costs[1] / sum_w;
+    this->tcurr.info.scores.clearence = costs[2] / sum_w;
+    this->tcurr.info.scores.progress = costs[3] / sum_w;
+    this->tcurr.info.scores.oscillation = costs[4] / sum_w;
     this->tcurr.info.scores.collision = penalty;
 
     double total_cost = 0.0;
     for(double& c : costs){
         total_cost += c;
     }
+
+    total_cost = total_cost / sum_w;
     
     // Return objective function cost value
     return (penalty + total_cost);
@@ -312,20 +323,30 @@ double DwaPsoPlanner::progress_cost(const double x_hat, const double y_hat){
 }
 
 double DwaPsoPlanner::oscillation_cost(const double w){
-    constexpr double OSC_PENALTY = 500.0;
+    const double w_curr = this->odom.twist.twist.angular.z;
+    const double aa_max = this->limits.max_acc.angular;
+    const double dt = this->dt_ms * 1e-3;
 
-    if(!this->osc_initialized){
-        this->reset_osc_state();
-    }
+    const double osc_cost = this->w_osc * std::abs(w - w_curr) / (aa_max * dt);
+    
+    if(this->COND_OSC_COST) {
+        
+        if(!this->osc_initialized){
+            this->reset_osc_state();
+        }
 
-    if(this->check_osc_reset()){
-        this->reset_osc_state();
-    }
+        if(this->check_osc_reset()){
+            this->reset_osc_state();
+        }
 
-    const int w_sign = signed_dir(w);
+        const int w_sign = signed_dir(w);
 
-    if(w_sign !=0 && last_w_sign !=0 && w_sign != last_w_sign){
-        return OSC_PENALTY;
+        if(w_sign !=0 && last_w_sign !=0 && w_sign != last_w_sign){
+            return osc_cost;
+        }
+
+    } else {
+        return osc_cost;
     }
 
     return 0.0;
