@@ -15,7 +15,10 @@ static double wrap_angle(double a) {
 }
 
 static double alpha_(const size_t k){
-    return std::sqrt(k);
+    if(k == 0){
+        return 100.0;
+    }
+    return 100*std::sqrt(k);
 }
 
 static double beta_(const uint q){
