@@ -1,2 +1,4 @@
 int64 robot_clearence
 float64 comp_time
+float64 theta_goal
+float64 dis_goal
