@@ -83,8 +83,11 @@ class DwaPsoPlanner : public rclcpp::Node {
         planner_types::Trajectory tcurr, tbest;
         planner_types::Window wnd_curr;
 
+        // Metrics
         double robot_clearence{0.0};
         double comp_time{0.0};
+        double theta_goal{0.0};
+        double dis_goal{0.0};
 
         // Oscillation memory
         int last_v_sign{0};   // -1, 0, +1

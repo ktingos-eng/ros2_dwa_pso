@@ -69,20 +69,11 @@ planner_types::Trajectory DwaPsoPlanner::eval_trajectory(
     t.vel.v = v;
     t.vel.w = w;
 
-    tf2::Quaternion q{
-        odom.pose.pose.orientation.x,
-        odom.pose.pose.orientation.y,
-        odom.pose.pose.orientation.z,
-        odom.pose.pose.orientation.w
-    };
-    tf2::Matrix3x3 m{q};
-
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);
-
     const double x0 = odom.pose.pose.position.x;
     const double y0 = odom.pose.pose.position.y;
-    const double phi0 = yaw;
+    const double phi0 = get_yaw(
+        odom.pose.pose.orientation
+    );
     // const double dt = this->dt_ms * 1e-3;
     const double dt = this->predict_time;
     const double res = this->costmap.info.resolution;
@@ -257,32 +248,6 @@ double DwaPsoPlanner::clearence_cost(const planner_types::Trajectory& t){
     return this->w_clear * (static_cast<double>(max_cost) / MAX_OCC_COST);
 }
 
-// Projected progression
-// double DwaPsoPlanner::progress_cost(const double x_hat, const double y_hat){
-//     const double x0 = this->odom.pose.pose.position.x;
-//     const double y0 = this->odom.pose.pose.position.y;
-//     const double xg = this->goal.x;
-//     const double yg = this->goal.y;
-
-//     const double dg = std::hypot(xg - x0, yg - y0);
-//     if (dg < 1e-9) {
-//         return 0.0;
-//     }
-
-//     const double gx = (xg - x0) / dg;
-//     const double gy = (yg - y0) / dg;
-
-//     const double dx = x_hat - x0;
-//     const double dy = y_hat - y0;
-//     const double ds = dx * gx + dy * gy;
-
-//     if(ds < 0.0){
-//         return 500.0;
-//     }
-
-//     return this->w_prog * (1 - ds / dg);
-// }
-
 // Terminal eucledian distance
 double DwaPsoPlanner::progress_cost(const double x_hat, const double y_hat){
     const double x0 = this->odom.pose.pose.position.x;
@@ -417,5 +382,7 @@ void DwaPsoPlanner::pub_metrics(){
     planner_interfaces::msg::Metrics msg;
     msg.robot_clearence = this->robot_clearence;
     msg.comp_time = this->comp_time;
+    msg.theta_goal = this->theta_goal;
+    msg.dis_goal = this->dis_goal;
     metrics_pub_->publish(msg);
 }

@@ -1,4 +1,5 @@
 #include "ros2_dwa_pso/dwa_pso_planner.hpp"
+#include "ros2_dwa_pso/planner_utils.hpp"
 
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -92,25 +93,30 @@ void DwaPsoPlanner::plannerCB()
 
     geometry_msgs::msg::Twist cmd_vel;
 
-    // // Init zero cmd before computation
-    // cmd_vel.linear.x = 0.0;
-    // cmd_vel.linear.y = 0.0;
-    // cmd_vel.linear.z = 0.0;
-
-    // cmd_vel.angular.x = 0.0;
-    // cmd_vel.angular.y = 0.0;
-    // cmd_vel.angular.z = 0.0;
-
     auto t0 = this->now();
     cmd_vel = this->pso_optimize_cmd(this->wnd_curr);
     // cmd_vel = this->grid_optimize_cmd(this->odom);
+
+    // Calculate Metrics
     this->comp_time = (this->now() - t0).seconds();
 
-    double x = this->odom.pose.pose.position.x;
-    double y = this->odom.pose.pose.position.y;
-
+    const double x = this->odom.pose.pose.position.x;
+    const double y = this->odom.pose.pose.position.y;
     this->robot_clearence = this->get_cell_val(x,y);
 
+    const double phi = get_yaw(this->odom.pose.pose.orientation);
+    const double phi_g = std::atan2(
+        goal.y - y,
+        goal.x - x
+    );
+    this->theta_goal = wrap_angle(phi_g - phi);
+
+    this->dis_goal = std::hypot(
+        goal.x - x,
+        goal.y - y
+    );
+
+    // Publish Path & Metrics
     this->pub_path();
     this->pub_metrics();
     
@@ -127,7 +133,6 @@ void DwaPsoPlanner::plannerCB()
     RCLCPP_INFO(this->get_logger(),"CLEAR: (%f)", this->tbest.info.scores.clearence);
     RCLCPP_INFO(this->get_logger(),"OSC: (%f)", this->tbest.info.scores.oscillation);
     RCLCPP_INFO(this->get_logger(),"COLL: (%f)", this->tbest.info.scores.collision);
-
 
     // Optional safety: keep command inside window bounds
     cmd_vel.linear.x  = std::clamp(cmd_vel.linear.x,  wnd_curr.v_min, wnd_curr.v_max);
