@@ -1,5 +1,9 @@
 #include <cmath>
 
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <geometry_msgs/msg/quaternion.hpp>
+
 static double wrap_angle(double a){
     return std::atan2(std::sin(a), std::cos(a));
 }
@@ -38,4 +42,21 @@ static int signed_dir(const double val){
         return -1;
     }
     return 0;
+}
+
+static double get_yaw(const geometry_msgs::msg::Quaternion& orientation){
+    tf2::Quaternion q {
+        orientation.x,
+        orientation.y,
+        orientation.z,
+        orientation.w
+    };
+
+    tf2::Matrix3x3 m{q};
+
+    double roll, pitch, yaw;
+
+    m.getRPY(roll, pitch, yaw);
+
+    return yaw;
 }
