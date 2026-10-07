@@ -46,7 +46,7 @@ class DwaPsoPlanner : public rclcpp::Node {
         double progress_cost(const double x_hat, const double y_hat);
         double oscillation_cost(const double w);
 
-        int compute_collision_violation(const planner_types::Trajectory& t);
+        double compute_collision_violation(const planner_types::Trajectory& t);
         int get_cell_val(double x, double y);
 
         void get_params();

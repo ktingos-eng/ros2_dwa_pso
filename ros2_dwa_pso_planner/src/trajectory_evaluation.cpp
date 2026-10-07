@@ -15,8 +15,7 @@ double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
     // Predict pose
     planner_types::Trajectory t = eval_trajectory(this->odom, v, w);
 
-    const uint q = compute_collision_violation(t);
-    this->tcurr.info.COLLISION = q > 0 ? true : false;
+    const double q = compute_collision_violation(t);
 
     const double penalty = alpha_(k) * std::pow(beta_(q),gamma_(q));
 
@@ -177,13 +176,11 @@ planner_types::Trajectory DwaPsoPlanner::eval_trajectory(
     t.predicted_pose.x_hat = x_hat;
     t.predicted_pose.y_hat = y_hat;
     t.predicted_pose.phi_hat = phi_hat;
-
-    this->tcurr = t;
-
+    
     return t;
 }
 
-int DwaPsoPlanner::compute_collision_violation(const planner_types::Trajectory& t) {
+double DwaPsoPlanner::compute_collision_violation(const planner_types::Trajectory& t) {
     int c_max = 0;
     for(const auto& p : t.path.poses){
         const double x = p.pose.position.x;
@@ -192,14 +189,15 @@ int DwaPsoPlanner::compute_collision_violation(const planner_types::Trajectory& 
         const int c = get_cell_val(x,y);
 
         if(c < 0 && this->REJECT_OOB){
-            return 10000;
+            return 10000.0;
         }
 
         c_max = c > c_max ? c : c_max;
     }
 
     if(c_max > this->thr_cost){
-        return std::abs(c_max - this->thr_cost) / this->occ_norm;
+        return static_cast<double>(std::abs(c_max - this->thr_cost)) 
+        / static_cast<double>(this->occ_norm);
     }
 
     return 0.0;
