@@ -15,20 +15,26 @@ static double alpha_(const size_t k){
     return 100*std::sqrt(k);
 }
 
-static double beta_(const uint q){
-    if(q > 0 && q < 1e-3){
+static double beta_(const double q)
+{
+    if (q <= 0.0) {
+        return 0.0;
+    } 
+    else if (q < 1e-3) {
         return 10.0;
-    } else if(q <= 0.1){
+    } 
+    else if (q <= 0.1) {
         return 20.0;
-    } else if(q <= 1){
+    } 
+    else if (q <= 1.0) {
         return 100.0;
-    } else if(q > 1){
+    } 
+    else {
         return 300.0;
     }
-    return 0.0;
 }
 
-static double gamma_(const uint q){
+static double gamma_(const double q){
     if(q >= 1){
         return 2.0;
     }
