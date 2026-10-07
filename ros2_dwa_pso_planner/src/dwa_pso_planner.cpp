@@ -139,11 +139,7 @@ void DwaPsoPlanner::plannerCB()
     cmd_vel.angular.z = std::clamp(cmd_vel.angular.z, wnd_curr.w_min, wnd_curr.w_max);
 
     // Terminate cmd when goal reached
-    double dx = goal.x - odom.pose.pose.position.x;
-    double dy = goal.y - odom.pose.pose.position.y;
-    double goal_err = std::hypot(dx,dy);
-
-    if(goal_err < this->eps_goal) {
+    if(this->dis_goal < this->eps_goal) {
         cmd_vel.linear.x = 0.0;
         cmd_vel.linear.y = 0.0;
         cmd_vel.linear.z = 0.0;
@@ -253,24 +249,20 @@ geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const planner_types::W
     double gbest_w = swarm.front().pbest_w;
     double gbest_cost = swarm.front().pbest_cost;
 
-    this->eval_cost(gbest_v, gbest_w, 1);
-    this->tbest = this->tcurr;
-
     for (const auto &p : swarm) {
         if (p.pbest_cost < gbest_cost) {
             gbest_cost = p.pbest_cost;
             gbest_v = p.pbest_v;
             gbest_w = p.pbest_w;
-
-            this->eval_cost(gbest_v, gbest_w, 1);
-            this->tbest = this->tcurr;
         }
     }
 
     int stall = 0;
     double prev_gbest_cost = gbest_cost;
 
+    size_t it_final = 0;
     for (size_t it = 0; it < this->imax; ++it) {
+        it_final = it;
 
         const double tau = (this->imax > 1)
             ? static_cast<double>(it) / static_cast<double>(this->imax - 1)
@@ -315,9 +307,6 @@ geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const planner_types::W
                 gbest_cost = p.pbest_cost;
                 gbest_v = p.pbest_v;
                 gbest_w = p.pbest_w;
-
-                this->eval_cost(gbest_v, gbest_w, it + 1);
-                this->tbest = this->tcurr;
             }
         }
 
@@ -329,6 +318,8 @@ geometry_msgs::msg::Twist DwaPsoPlanner::pso_optimize_cmd(const planner_types::W
 
         if (stall >= this->patience) break;
     }
+
+    this->eval_cost(gbest_v, gbest_w, it_final, &this->tbest);
 
     geometry_msgs::msg::Twist out;
     out.linear.x  = gbest_v;
@@ -500,8 +491,7 @@ void DwaPsoPlanner::get_params() {
     this->get_parameter("progress_weight", this->w_prog);
     this->get_parameter("clearence_weight", this->w_clear);
     this->get_parameter("oscillation_weight", this->w_osc);
-    std::cout<<this->w_osc<<"\n";
-
+    
     this->get_parameter("reject_oob_trajectories", this->REJECT_OOB);
     this->get_parameter("conditional_osc_cost", this->COND_OSC_COST);
 

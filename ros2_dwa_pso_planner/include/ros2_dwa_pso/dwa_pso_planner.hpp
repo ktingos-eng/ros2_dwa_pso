@@ -34,7 +34,9 @@ class DwaPsoPlanner : public rclcpp::Node {
 
         void init_swarm(std::vector<planner_types::Particle>& swarm, planner_types::Window wnd);
 
-        double eval_cost(const double v, const double w, const size_t k);
+        double eval_cost(const double v, const double w, 
+            const size_t k, planner_types::Trajectory* traj_ = nullptr
+        );
         planner_types::Trajectory eval_trajectory(const nav_msgs::msg::Odometry& odom,
             const double v, const double w
         );

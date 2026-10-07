@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <limits>
 
-double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
+double DwaPsoPlanner::eval_cost(const double v, const double w,
+    const size_t k, planner_types::Trajectory* traj_
+)
 {
     // Predict pose
     planner_types::Trajectory t = eval_trajectory(this->odom, v, w);
@@ -38,12 +40,19 @@ double DwaPsoPlanner::eval_cost(const double v, const double w, const size_t k)
 
     const double sum_w = std::accumulate(weights.begin(), weights.end(), 0);
 
-    this->tcurr.info.scores.vel = costs[0] / sum_w;
-    this->tcurr.info.scores.head = costs[1] / sum_w;
-    this->tcurr.info.scores.clearence = costs[2] / sum_w;
-    this->tcurr.info.scores.progress = costs[3] / sum_w;
-    this->tcurr.info.scores.oscillation = costs[4] / sum_w;
-    this->tcurr.info.scores.collision = penalty;
+    // Move trajectory object to pointer, if requested
+    if(traj_!=nullptr){
+        t.info.COLLISION = q > 0;
+
+        t.info.scores.vel = costs[0] / sum_w;
+        t.info.scores.head = costs[1] / sum_w;
+        t.info.scores.clearence = costs[2] / sum_w;
+        t.info.scores.progress = costs[3] / sum_w;
+        t.info.scores.oscillation = costs[4] / sum_w;
+        t.info.scores.collision = penalty;
+
+        *traj_ = std::move(t);
+    };
 
     double total_cost = 0.0;
     for(double& c : costs){
