@@ -78,7 +78,7 @@ def generate_launch_description():
             "eps_head": LaunchConfiguration("eps_head"),
             "eps_cost": LaunchConfiguration("eps_cost"),
             "patience": LaunchConfiguration("patience"),
-            "random_int": LaunchConfiguration("random_init"),
+            "random_init": LaunchConfiguration("random_init"),
 
             "acc_cog":    LaunchConfiguration("cognitive_coeff"),
             "acc_soc":    LaunchConfiguration("social_coeff"),
