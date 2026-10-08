@@ -397,7 +397,7 @@ void DwaPsoPlanner::init_swarm(std::vector<planner_types::Particle>& swarm, plan
                 std::sqrt(static_cast<double>(num))
             );
 
-            while(num % factor != 0 || factor < 1){
+            while(num % factor != 0 && factor > 1){
                 --factor;
             };
 
@@ -408,15 +408,18 @@ void DwaPsoPlanner::init_swarm(std::vector<planner_types::Particle>& swarm, plan
 
         bool PRIME = (this->n_par>1 && nv==1);
 
+        size_t nw;
         if(PRIME) {
             // Reduce by 1 if prime
             nv = closestFactor(this->n_par - 1);
+            nw = (this->n_par - 1) / nv;
+        } else {
+            nw = this->n_par / nv;
         }
-        size_t nw = (this->n_par - 1) / nv;
 
         double dv = (wnd.v_max - wnd.v_min) / nv;
         double dw = (wnd.w_max - wnd.w_min) / nw;
-        
+
         for (size_t k = 0; k < swarm.size(); ++k) {
             auto &p = swarm[k];
 
@@ -435,7 +438,29 @@ void DwaPsoPlanner::init_swarm(std::vector<planner_types::Particle>& swarm, plan
             p.pbest_v = p.v;
             p.pbest_w = p.w;
             p.pbest_cost = p.cost;
+            p.vv = 0.0;
+            p.vw = 0.0;
         }
+
+        #ifdef DEBUG
+            RCLCPP_INFO(this->get_logger(), "PARTICLES: %i", n_par);
+            RCLCPP_INFO(this->get_logger(), "Window: V(%f, %f), W(%f,%f)", wnd.v_min, wnd.v_max, wnd.w_min, wnd.w_max);
+            RCLCPP_INFO(this->get_logger(), "Separation: Nv x Nw = %i x %i", nv, nw);
+            for(size_t k = 0; k < swarm.size(); ++k){
+                const auto p = swarm[k];
+                RCLCPP_INFO(
+                    this->get_logger(),
+                    "Particle %li: (v,w)=(%f, %f)",
+                    k+1, p.v, p.w 
+                );
+
+                if(p.v < wnd.v_min || p.v > wnd.v_max || p.w < wnd.w_min || p.w > wnd.w_max){
+                    throw std::runtime_error("Particle outside of window");
+                }
+            }
+
+            rclcpp::shutdown();
+        #endif
     }
 }
 
