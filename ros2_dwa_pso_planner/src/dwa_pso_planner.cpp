@@ -123,7 +123,8 @@ void DwaPsoPlanner::plannerCB()
     RCLCPP_INFO(this->get_logger(),"%s", "##################################");
     RCLCPP_INFO(this->get_logger(),"%s", "----------------------------------");
     RCLCPP_INFO(this->get_logger(),"ODOM: (%f)", odom.twist.twist.linear.x);
-    RCLCPP_INFO(this->get_logger(),"WINDOW: (%f, %f)", wnd_curr.v_max, wnd_curr.w_max);
+    RCLCPP_INFO(this->get_logger(),"WINDOW V: (%f, %f)", wnd_curr.v_min, wnd_curr.v_max);
+    RCLCPP_INFO(this->get_logger(),"WINDOW W: (%f, %f)", wnd_curr.w_min, wnd_curr.v_min);
     RCLCPP_INFO(this->get_logger(), "LINEAR: (%f)   ANGULAR: (%f)", cmd_vel.linear.x, cmd_vel.angular.z);
 
     RCLCPP_INFO(this->get_logger(),"%s", "----------------------------------");
@@ -165,7 +166,6 @@ void DwaPsoPlanner::plannerCB()
     #endif
 
     cmd_pub_->publish(cmd_vel);
-
 }
 
 void DwaPsoPlanner::odomCB(const nav_msgs::msg::Odometry::SharedPtr msg) {
@@ -382,12 +382,14 @@ void DwaPsoPlanner::init_swarm(std::vector<planner_types::Particle>& swarm, plan
         std::uniform_real_distribution<double> uniw(wnd.w_min, wnd.w_max);
 
         for (auto &p : swarm) {
-            p.v = univ(rng);
-            p.w = uniw(rng);
+            p.v = std::clamp(univ(rng), wnd.v_min, wnd.v_max);
+            p.w = std::clamp(uniw(rng), wnd.w_min, wnd.w_max);
             p.cost = this->eval_cost(p.v, p.w, 1);
             p.pbest_v = p.v;
             p.pbest_w = p.w;
             p.pbest_cost = p.cost;
+            p.vv = 0.0;
+            p.vw = 0.0;
         } 
     } else {
         auto closestFactor = [](size_t num){

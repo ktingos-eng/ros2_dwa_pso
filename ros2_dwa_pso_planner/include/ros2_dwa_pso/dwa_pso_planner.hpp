@@ -84,7 +84,7 @@ class DwaPsoPlanner : public rclcpp::Node {
 
         planner_types::Trajectory tcurr, tbest;
         planner_types::Window wnd_curr;
-
+        
         // Metrics
         double robot_clearence{0.0};
         double comp_time{0.0};
