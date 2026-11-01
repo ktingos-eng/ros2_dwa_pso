@@ -1,3 +1,4 @@
+std_msgs/Header header
 int64 robot_clearence
 float64 comp_time
 float64 theta_goal
