@@ -391,5 +391,6 @@ void DwaPsoPlanner::pub_metrics(){
     msg.comp_time = this->comp_time;
     msg.theta_goal = this->theta_goal;
     msg.dis_goal = this->dis_goal;
+    msg.header.stamp = this->now();
     metrics_pub_->publish(msg);
 }
