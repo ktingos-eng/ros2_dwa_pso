@@ -84,7 +84,9 @@ def generate_launch_description():
             "acc_soc":    LaunchConfiguration("social_coeff"),
             "iner_start": LaunchConfiguration("init_inertia_coeff"),
             "iner_end":   LaunchConfiguration("final_inertia_coeff"),
-            "occupancy_norm": LaunchConfiguration("occupancy_norm")
+            "occupancy_norm": LaunchConfiguration("occupancy_norm"),
+
+            "use_sim_time": True
         }]
     )
 
