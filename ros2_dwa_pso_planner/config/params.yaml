@@ -1,0 +1,37 @@
+dwa_pso_planner:
+  ros__parameters:
+    goal_x: 5.0
+    goal_y: 0.0
+
+    dt_ms: 100.0
+    eps_goal: 0.01
+
+    limits.max_vel.linear: 10.0
+    limits.max_vel.angular: 10.0
+    limits.max_acc.linear: 2.0
+    limits.max_acc.angular: 1.0
+
+    heading_weight: 1.0
+    velocity_weight: 2.2
+    progress_weight: 2.5
+    clearence_weight: 2.0
+    oscillation_weight: 0.7
+
+    reject_oob_trajectories: false
+    conditional_osc_cost: true
+
+    imax: 60
+    n_par: 30
+
+    eps_head: 0.01
+    eps_cost: 0.0001
+    patience: 5
+    random_init: true
+
+    acc_cog: 2.0
+    acc_soc: 2.0
+    iner_start: 0.9
+    iner_end: 0.4
+    occupancy_norm: 10
+
+    use_sim_time: true
