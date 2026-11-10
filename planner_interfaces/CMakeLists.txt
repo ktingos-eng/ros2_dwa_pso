@@ -25,6 +25,7 @@ endif()
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
   "msg/Metrics.msg"
+  "msg/DynamicWeights.msg"
   DEPENDENCIES std_msgs
 )
 
