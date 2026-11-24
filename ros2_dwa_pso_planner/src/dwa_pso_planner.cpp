@@ -11,7 +11,7 @@
 #include <limits>
 #include <cmath>
 
-#define DEBUG
+// #define DEBUG
 // #define OUTPUT
 
 DwaPsoPlanner::DwaPsoPlanner()
@@ -97,9 +97,6 @@ void DwaPsoPlanner::plannerCB()
             false,
             std::memory_order_release
         );
-
-        RCLCPP_INFO(this->get_logger(), "%f", this->w_head);
-        RCLCPP_INFO(this->get_logger(), "GOT NEW WEIGHTS");
     }
 
     if(this->have_odom.load(std::memory_order_acquire)) {
