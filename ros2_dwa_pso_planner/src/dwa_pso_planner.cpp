@@ -49,6 +49,14 @@ DwaPsoPlanner::DwaPsoPlanner()
         opts
     );
 
+    weights_sub_ = this->create_subscription<planner_interfaces::msg::DynamicWeights>(
+        "/dynamic_weights",
+        rclcpp::QoS(rclcpp::KeepLast(5)).reliable(),
+        [this](const planner_interfaces::msg::DynamicWeights::SharedPtr msg){
+            this->weightsCB(msg);
+        }
+    );
+
     cmd_pub_ = this->create_publisher<geometry_msgs::msg::Twist>(
         "/cmd_vel",
         rclcpp::QoS(10)
@@ -75,6 +83,24 @@ DwaPsoPlanner::DwaPsoPlanner()
 
 void DwaPsoPlanner::plannerCB()
 {
+    if(this->have_weights.load(std::memory_order_acquire)){
+        this->weights = this->last_weights.load(
+            std::memory_order_acquire
+        );
+
+        this->w_head = this->weights.w_head;
+        this->w_vel = this->weights.w_vel;
+        this->w_prog = this->weights.w_prog;
+        this->w_clear = this->weights.w_clear;
+
+        this->have_weights.store(
+            false,
+            std::memory_order_release
+        );
+
+        RCLCPP_INFO(this->get_logger(), "%f", this->w_head);
+        RCLCPP_INFO(this->get_logger(), "GOT NEW WEIGHTS");
+    }
 
     if(this->have_odom.load(std::memory_order_acquire)) {
         std::lock_guard<std::mutex> lk(this->odom_mtx);
@@ -181,6 +207,11 @@ void DwaPsoPlanner::costmapCB(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)
     std::lock_guard<std::mutex> lk(costmap_mtx);
     last_costmap = *msg;
     have_costmap.store(true, std::memory_order_release);
+}
+
+void DwaPsoPlanner::weightsCB(const planner_interfaces::msg::DynamicWeights::SharedPtr msg) {
+    last_weights.store(*msg, std::memory_order_release);
+    have_weights.store(true, std::memory_order_release);
 }
 
 planner_types::Window DwaPsoPlanner::compute_dynamic_window(const nav_msgs::msg::Odometry& odom)

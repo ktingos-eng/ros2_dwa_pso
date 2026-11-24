@@ -10,6 +10,7 @@
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <planner_interfaces/msg/metrics.hpp>
+#include <planner_interfaces/msg/dynamic_weights.hpp>
 #include <mutex>
 #include <atomic>
 
@@ -22,6 +23,7 @@ class DwaPsoPlanner : public rclcpp::Node {
         // ROS callback functions
         void odomCB(const nav_msgs::msg::Odometry::SharedPtr msg);
         void costmapCB(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
+        void weightsCB(const planner_interfaces::msg::DynamicWeights::SharedPtr msg);
 
         // Timer Callback - Main controller loop function
         void plannerCB();
@@ -69,6 +71,7 @@ class DwaPsoPlanner : public rclcpp::Node {
 
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
         rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr costmap_sub_;
+        rclcpp::Subscription<planner_interfaces::msg::DynamicWeights>::SharedPtr weights_sub_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
         rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
         rclcpp::Publisher<planner_interfaces::msg::Metrics>::SharedPtr metrics_pub_;
@@ -81,6 +84,10 @@ class DwaPsoPlanner : public rclcpp::Node {
         std::mutex costmap_mtx;
         nav_msgs::msg::OccupancyGrid last_costmap, costmap;
         std::atomic<bool> have_costmap{false};
+
+        planner_interfaces::msg::DynamicWeights weights;
+        std::atomic<planner_interfaces::msg::DynamicWeights> last_weights;
+        std::atomic<bool> have_weights{false};
 
         planner_types::Trajectory tcurr, tbest;
         planner_types::Window wnd_curr;
